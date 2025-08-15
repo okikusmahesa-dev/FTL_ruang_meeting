@@ -2,14 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dependencies dulu
-COPY package*.json ./
+# Install dependencies first for better caching
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy semua source code
+# Copy all files
 COPY . .
 
-# React dev server akan jalan di port 3000
 EXPOSE 3000
+
+# Special config for Docker development
+ENV CHOKIDAR_USEPOLLING=true
+ENV WDS_SOCKET_PORT=3000
 
 CMD ["npm", "start"]
