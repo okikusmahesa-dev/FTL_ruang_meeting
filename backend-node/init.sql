@@ -11,3 +11,6 @@ CREATE TABLE IF NOT EXISTS ruang_meeting (
     jumlah_peserta INT,
     jenis_konsumsi VARCHAR(100)
 );
+
+GRANT ALL PRIVILEGES ON ftl.* TO 'appuser'@'%';
+FLUSH PRIVILEGES;

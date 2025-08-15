@@ -24,6 +24,11 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - DB_HOST=mysql  # Use service name as host
+      - DB_PORT=3306
+      - DB_USER=appuser  # New user instead of root
+      - DB_PASSWORD=apppassword
+      - DB_NAME=ftl
     depends_on:
       - mysql
     networks:
@@ -35,6 +40,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: ftl
+      MYSQL_USER: appuser  # Add regular user
+      MYSQL_PASSWORD: apppassword  # Add password for regular user
     ports:
       - "3306:3306"
     volumes:
@@ -42,6 +49,11 @@ services:
       - ./backend-node/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
 networks:
   app-network:

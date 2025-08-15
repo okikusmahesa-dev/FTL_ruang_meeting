@@ -7,20 +7,41 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// koneksi MySQL
+// MySQL connection configuration - using environment variables
 const db = mysql.createConnection({
-    host: 'mysql',
-    user: 'root',
-    password: 'rootpassword',
-    database: 'crud_db'
+    host: process.env.DB_HOST || 'mysql', // Default to service name if env var not set
+    user: process.env.DB_USER || 'appuser', // Using non-root user
+    password: process.env.DB_PASSWORD || 'apppassword',
+    database: process.env.DB_NAME || 'ftl', // Changed to match your compose file
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect(err => {
-    if (err) {
-        console.error('DB connection error:', err);
-        return;
+// Improved connection handling with retries
+const connectWithRetry = () => {
+    db.connect(err => {
+        if (err) {
+            console.error('DB connection failed:', err.message);
+            console.log('Retrying connection in 5 seconds...');
+            setTimeout(connectWithRetry, 5000);
+            return;
+        }
+        console.log('Connected to MySQL database');
+    });
+};
+
+connectWithRetry();
+
+// Error handling for database connection
+db.on('error', (err) => {
+    console.error('MySQL error:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        connectWithRetry();
+    } else {
+        throw err;
     }
-    console.log('Connected to MySQL');
 });
 
 // CREATE
