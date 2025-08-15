@@ -1,0 +1,51 @@
+services:
+  frontend:
+    build: ./frontend-react
+    container_name: frontend-container
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-react:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend-node
+    container_name: backend-container
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend-node:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ftl
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend-node/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
